@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Waypoints in directions</title>
+    <style>
+        #right-panel {
+            font-family: 'Roboto', 'sans-serif';
+            line-height: 30px;
+            padding-left: 10px;
+        }
+        
+        #right-panel select,
+        #right-panel input {
+            font-size: 15px;
+        }
+        
+        #right-panel select {
+            width: 100%;
+        }
+        
+        #right-panel i {
+            font-size: 12px;
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #map {
+            height: 100%;
+            float: left;
+            width: 70%;
+            height: 100%;
+        }
+        
+        #right-panel {
+            margin: 20px;
+            border-width: 2px;
+            width: 20%;
+            height: 400px;
+            float: left;
+            text-align: left;
+            padding-top: 0;
+        }
+        
+        #directions-panel {
+            margin-top: 10px;
+            background-color: #FFEE77;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="right-panel">
+        <div id="directions-panel"></div>
+    </div>
+
+    <script>
+        function initMap() {
+            var directionsService = new google.maps.DirectionsService;
+            var directionsDisplay = new google.maps.DirectionsRenderer;
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 6,
+                center: {
+                    lat: 41.85,
+                    lng: -87.65
+                }
+            });
+            directionsDisplay.setMap(map);
+            calculateAndDisplayRoute(directionsService, directionsDisplay);
+
+        }
+
+        function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+            var waypts = [];
+            var start = [];
+            var dest = [];
+            var checkboxArray = document.getElementById('waypoints');
+
+            var locationArr = [];
+
+
+            // Nugegoda
+            locationArr.push({
+                lat: "6.8649081",
+                long: "79.89967890000003",
+                time: new Date().toLocaleString()
+            });
+
+            // Pannipitiya,
+            locationArr.push({
+                lat: "6.8433199",
+                long: "79.95530110000004",
+                time: new Date().toLocaleString()
+            });
+
+
+
+            // Maharagama
+            locationArr.push({
+                lat: "6.8522148",
+                long: "79.92486689999998",
+                time: new Date().toLocaleString()
+            });
+
+            for (var i = 0; i < locationArr.length; i++) {
+                if (i == 0) {
+                    start.push({
+                        location: new google.maps.LatLng(locationArr[i].lat, locationArr[i].long),
+                        stopover: false
+                    });
+                } else if (i == (locationArr.length - 1)) {
+                    dest.push({
+                        location: new google.maps.LatLng(locationArr[i].lat, locationArr[i].long),
+                        stopover: false
+                    });
+
+                } else {
+                    waypts.push({
+                        location: new google.maps.LatLng(locationArr[i].lat, locationArr[i].long),
+                        stopover: false
+                    });
+                }
+            }
+
+            directionsService.route({
+                origin: start[0].location,
+                destination: dest[0].location,
+                waypoints: waypts,
+                optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            }, function(response, status) {
+                if (status === 'OK') {
+                    directionsDisplay.setDirections(response);
+                    var route = response.routes[0];
+                    var summaryPanel = document.getElementById('directions-panel');
+                    summaryPanel.innerHTML = '';
+                    // For each route, display summary information.
+                    for (var i = 0; i < route.legs.length; i++) {
+                        var routeSegment = i + 1;
+                        summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
+                            '</b><br>';
+                        summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
+                        summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
+                        summaryPanel.innerHTML += route.legs[i].distance.text + '<br><br>';
+                    }
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+        function getLatLong(address) {
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+                'address': address
+            }, function(results, status) {
+                if (status === 'OK') {
+
+                    console.log(address + " +:+" + results[0].geometry.location);
+                    return {
+                        lat: results[0].geometry.location.lat(),
+                        lon: results[0].geometry.location.lng()
+                    };
+
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initMap">
+    </script>
+</body>
+
+</html>
